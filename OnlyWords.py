@@ -103,39 +103,70 @@ word_pairs = {
     "Zeit": "time",
     "zu (zu-)": "to, too, at"
 }
+import random
+
+def initialize_eng_to_ger(word_pairs):
+    """Create a reverse mapping from English to German."""
+    eng_to_ger = {}
+    for ger, eng in word_pairs.items():
+        for eng_word in eng.split(","):
+            eng_word = eng_word.strip()
+            if eng_word not in eng_to_ger:
+                eng_to_ger[eng_word] = []
+            eng_to_ger[eng_word].append(ger)
+    return eng_to_ger
+
+def select_question(word_list, eng_to_ger, direction):
+    """Select a question based on the direction of translation."""
+    if direction == "German to English":
+        german, english = random.choice(word_list)
+        return german, english.split(", "), direction
+    else:
+        english, germans = random.choice(list(eng_to_ger.items()))
+        return english, germans, direction
+
+def ask_question(question, question_number, total_questions):
+    """Ask the current question and get the user's answer."""
+    word, translations, direction = question  # Correctly unpack all three elements of the tuple
+    if direction == "German to English":
+        print(f"Question {question_number}/{total_questions}: What is '{word}' in English?")
+    else:  # English to German
+        print(f"Question {question_number}/{total_questions}: What is '{word}' in German?")
+    return input("Your answer: ").strip().lower()
+
+
+def check_answer(user_answer, correct_answers):
+    """Check if the user's answer is correct."""
+    return user_answer in [answer.lower() for answer in correct_answers]
+
+def update_score_and_status(word_list, question, score, is_correct):
+    """Update the score and remove the word pair from the list if correct."""
+    if is_correct:
+        print("Correct!")
+        score += 1
+        if question[2] == "German to English":  # Remove the word pair only for German to English direction
+            word_list.remove((question[0], ", ".join(question[1])))
+    else:
+        correct_answer_str = ', '.join(question[1])
+        print(f"Incorrect! Correct answers include: {correct_answer_str}.")
+    return score
 
 def quiz(word_pairs):
     score = 0
     total_questions = len(word_pairs)
-    word_list = list(word_pairs.items())  # Convert dictionary to a list of tuples
+    word_list = list(word_pairs.items())
+    eng_to_ger = initialize_eng_to_ger(word_pairs)
 
-    while word_list:
-        question_number = total_questions - len(word_list) + 1
-        german, english = random.choice(word_list)  # Randomly select a word pair
-        word_list.remove((german, english))  # Remove the selected word pair from the list
-
-        # Randomly choose the question language
-        question_lang = random.choice(["German", "English"])
-        
-        if question_lang == "German":
-            print(f"Question {question_number}/{total_questions}: What is '{german}' in English?")
-            answer = input("Your answer: ").strip().lower()
-            correct_answer = english.lower()
-        else:
-            print(f"Question {question_number}/{total_questions}: What is '{english}' in German?")
-            answer = input("Your answer: ").strip().lower()
-            correct_answer = german.lower()
-        
-        if answer == correct_answer:
-            print("Correct!")
-            score += 1
-        else:
-            print(f"Incorrect! The correct answer was '{correct_answer}'.")
-
+    for question_number in range(1, total_questions + 1):
+        direction = random.choice(["German to English", "English to German"])
+        question = select_question(word_list, eng_to_ger, direction)
+        user_answer = ask_question(question, question_number, total_questions)
+        is_correct = check_answer(user_answer, question[1])
+        score = update_score_and_status(word_list, question, score, is_correct)
         print(f"Words Done: {question_number}/{total_questions}")
         print(f"Current Score: {score}/{question_number}\n")
-    
+
     print(f"Final Score: {score}/{total_questions}")
 
-# Start the quiz
+# Example usage
 quiz(word_pairs)
