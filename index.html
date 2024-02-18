@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // JavaScript to handle submitting answers and fetching new questions
+            $("#submitAnswer").click(function() {
+                $.ajax({
+                    type: "POST",
+                    url: "/question",
+                    data: {
+                        answer: $("#answer").val(), // Get the user's answer from an input field
+                        // Add any other data you need to send to the server
+                    },
+                    success: function(response) {
+                        // Update the page with the new question and score
+                        // based on the response from the server
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="quiz">
+        <!-- Quiz content (questions, answers, score) will be dynamically updated here -->
+    </div>
+    <input type="text" id="answer">
+    <button id="submitAnswer">Submit Answer</button>
+</body>
+</html>
