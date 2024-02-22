@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Language Selection</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f3f3f3;
+  }
+  .container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .language-selection {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+    .language-option {
+    width: 50px; /* Set the width you prefer */
+    height: auto; /* Set height to auto to maintain aspect ratio */
+    margin: 0 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+
+  .language-option:hover {
+    transform: scale(1.1);
+  }
+  .button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    text-align: center;
+  }
+  .button:hover {
+    background-color: #0056b3;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="language-selection">
+    <img src="../static/italia.png" alt="Italian" class="language-option">
+    <img src="../static/spain.png" alt="Spanish" class="language-option">
+    <img src="../static/square.png" alt="German" class="language-option">
+    <img src="../static/russia.png" alt="Russian" class="language-option">
+    <img src="../static/swe.png" alt="Swedish" class="language-option">
+
+  </div>
+  <button class="button">Continue</button>
+</div>
+
+
+<script>
+    function selectLanguage(selectedElement) {
+      // Remove 'selected' class from all options
+      document.querySelectorAll('.language-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+  
+      // Add 'selected' class to the clicked option
+      selectedElement.classList.add('selected');
+  
+      // Enable the continue button
+      var continueButton = document.getElementById('continueButton');
+      continueButton.classList.add('active');
+      continueButton.disabled = false; // Enable the button
+    }
+  </script>
+
+
+
+</body>
+</html>
