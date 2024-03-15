@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selection Form</title>
+    <style>
+        /* Some basic styling to make the form look decent */
+        form {
+            margin: 20px;
+        }
+
+        fieldset {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        legend {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <form action="your_processing_script.php" method="post"> <fieldset>
+            <legend>Language</legend>
+            <label><input type="radio" name="language" value="IT"> Italian</label>
+            <label><input type="radio" name="language" value="DE"> German</label>
+            <label><input type="radio" name="language" value="SP"> Spanish</label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Type</legend>
+            <label><input type="radio" name="type" value="adjective"> Adjective</label>
+            <label><input type="radio" name="type" value="verb"> Verb</label>
+            <label><input type="radio" name="type" value="noun"> Noun</label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Count</legend>
+            <label><input type="radio" name="count" value="10"> 10</label>
+            <label><input type="radio" name="count" value="50"> 50</label>
+            <label><input type="radio" name="count" value="100"> 100</label>
+        </fieldset>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

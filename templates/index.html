@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Language Selection</title>
 <style>
+  /* Your existing styles... */
   body {
     font-family: Arial, sans-serif;
     display: flex;
@@ -49,44 +50,100 @@
     color: white;
     cursor: pointer;
     text-align: center;
+    margin: 5px;
   }
   .button:hover {
     background-color: #0056b3;
   }
+
+  .language-option.selected {
+    border: 2px solid #007bff; /* Example style for a selected option */
+  }
+
+  .button.inactive {
+    opacity: 0.5; /* Make the button appear inactive */
+    cursor: not-allowed; /* Change the cursor to indicate the button is disabled */
+  }
+
+  /* Rest of your CSS... */
 </style>
 </head>
 <body>
+  
 <div class="container">
   <div class="language-selection">
-    <img src="../static/italia.png" alt="Italian" class="language-option">
-    <img src="../static/spain.png" alt="Spanish" class="language-option">
-    <img src="../static/square.png" alt="German" class="language-option">
-    <img src="../static/russia.png" alt="Russian" class="language-option">
-    <img src="../static/swe.png" alt="Swedish" class="language-option">
+    <!-- Added onclick attribute to call selectLanguage function -->
+    <img src="../static/italia.png" alt="Italian" class="language-option" data-language="IT" onclick="selectLanguage(this)">
+    <img src="../static/spain.png" alt="Spanish" class="language-option" data-language="SP" onclick="selectLanguage(this)">
+    <img src="../static/square.png" alt="German" class="language-option" data-language="DE" onclick="selectLanguage(this)">
+    <img src="../static/russia.png" alt="Russian" class="language-option" data-language="RU "onclick="selectLanguage(this)">
+    <img src="../static/swe.png" alt="Swedish" class="language-option" data-language="SE" onclick="selectLanguage(this)">
+  </div>
+
+  <div class="container">
+    <div class="word-type-selection">
+      <!-- Only "All" is active, the others are disabled -->
+      <button id="all" class="button active">All</button>
+      <button id="subjective" class="button active">Subjective</button>
+      <button id="adjectives" class="button active">Adjectives</button>
+      <button id="verbs" class="button active">Verbs</button>
+    </div>
+
+    <div class="container">
+        <div class="word-count-selection">
+        <!-- Only "100" is active, the others are disabled -->
+        <button id="100" class="button active">100</button>
+        <button id="200" class="button active">200</button>
+        <button id="1000" class="button active">1000</button>
+        </div>
+    </div>
 
   </div>
-  <button class="button">Continue</button>
+
+
+
+  <!-- Added id attribute to the button and set it to be initially disabled -->
+  <button id="continueButton" class="button inactive" onclick="location.href='quiz.html'" disabled>Continue</button>
 </div>
 
 
+
 <script>
-    function selectLanguage(selectedElement) {
-      // Remove 'selected' class from all options
-      document.querySelectorAll('.language-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-  
-      // Add 'selected' class to the clicked option
-      selectedElement.classList.add('selected');
-  
-      // Enable the continue button
-      var continueButton = document.getElementById('continueButton');
-      continueButton.classList.add('active');
-      continueButton.disabled = false; // Enable the button
-    }
-  </script>
 
+function selectLanguage(selectedElement) {
+  document.querySelectorAll('.language-option').forEach(option => {
+    option.classList.remove('selected');
+  });
 
+  // Add 'selected' class to the clicked option
+  selectedElement.classList.add('selected');
 
+  // Enable the continue button if a language is selected
+  var continueButton = document.getElementById('continueButton');
+  if (document.querySelector('.language-option.selected')) {
+    continueButton.classList.remove('inactive');
+    continueButton.disabled = false; // Enable the button
+  }
+}
+
+document.getElementById('continueButton').onclick = function() {
+  const selectedLanguageElement = document.querySelector('.language-option.selected');
+  const selectedWordTypeElement = document.querySelector('.word-type-selection button.active'); 
+  const selectedWordCountElement = document.querySelector('.word-count-selection button.active');  
+
+  if (selectedLanguageElement && selectedWordTypeElement && selectedWordCountElement) {
+    const selectedLanguage = selectedLanguageElement.getAttribute('data-language');
+    const selectedWordType = selectedWordTypeElement.id; 
+    const selectedWordCount = selectedWordCountElement.id;
+
+    window.location.href = 'quiz.html?language=' + selectedLanguage + '&wordType=' + selectedWordType + '&wordCount=' + selectedWordCount;
+    console.log('quiz.html?language=' + selectedLanguage + '&wordType=' + selectedWordType + '&wordCount=' + selectedWordCount);
+  } else {
+    // Handle the case where not all selections have been made
+    alert('Please select a language, word type, and word count before continuing.');
+  }
+}
+
+</script>
 </body>
 </html>

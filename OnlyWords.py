@@ -134,7 +134,6 @@ def ask_question(question, question_number, total_questions):
         print(f"Question {question_number}/{total_questions}: What is '{word}' in German?")
     return input("Your answer: ").strip().lower()
 
-
 def check_answer(user_answer, correct_answers):
     """Check if the user's answer is correct."""
     return user_answer in [answer.lower() for answer in correct_answers]
