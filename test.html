@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Learning App</title>
+</head>
+<body>
+    <h1>Learn Words in a New Language</h1>
+    
+    <form id="language-form">
+        <fieldset>
+            <legend>Choose a language:</legend>
+            <label><input type="radio" name="language" value="german"> German</label>
+            <label><input type="radio" name="language" value="french" disabled> French</label>
+            <!-- Add more language options here as needed -->
+        </fieldset>
+        
+        <fieldset>
+            <legend>Number of words:</legend>
+            <label><input type="radio" name="word_count" value="100" > 100</label>
+            <label><input type="radio" name="word_count" value="200" disabled> 200</label>
+            <label><input type="radio" name="word_count" value="1000" disabled> 1000</label>
+        </fieldset>
+        
+        <fieldset>
+            <legend>Select word types:</legend>
+            <label><input type="checkbox" name="word_type" value="nouns" disabled> Nouns</label>
+            <label><input type="checkbox" name="word_type" value="verbs" disabled> Verbs</label>
+            <label><input type="checkbox" name="word_type" value="adjectives" disabled> Adjectives</label>
+            <label><input type="checkbox" name="word_type" value="all"> All</label>
+            <!-- Add more word type options here as needed -->
+        </fieldset>
+        
+        <button type="submit" id="start-session">Start Learning</button>
+    </form>
+
+    <div id="progression-feedback"></div>
+</body>
+</html>
