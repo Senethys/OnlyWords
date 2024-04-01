@@ -1,5 +1,5 @@
 // script.js
-const wordPairs = {
+const wordPairs200 = {
     "ab": "from, off",
     "Abend": "evening",
     "aber": "but",
@@ -221,10 +221,11 @@ const wordPairs = {
 
 let score = 0;
 let questionNumber = 1;
-let questions = Object.entries(wordPairs);
+let questions = Object.entries(wordPairs200);
 let totalQuestions = questions.length;
 let engToGer = {};
 let mistakes = 0;
+let usedIndices = new Set();
 
 
 // Create a reverse mapping for English to German questions
@@ -237,38 +238,53 @@ for (const [ger, eng] of questions) {
 
 function initializeQuiz() {
     document.getElementById('submit').addEventListener('click', checkAndProceed);
+    // Add event listener for 'Enter' key on the answer input field
+    document.getElementById('answer').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            checkAndProceed();
+        }
+    });
+
     nextQuestion();
 }
 
 function nextQuestion() {
     if (questionNumber > totalQuestions) {
-        // Quiz is over
         document.getElementById('question').innerText = "Quiz Completed!";
         document.getElementById('submit').style.display = 'none';
         return;
     }
+
+    let index;
+    do {
+        index = Math.floor(Math.random() * totalQuestions);
+    } while (usedIndices.has(index));
+    usedIndices.add(index); // Mark this index as used
 
     const direction = Math.random() < 0.5 ? "German to English" : "English to German";
     let questionText;
     let correctAnswers;
 
     if (direction === "German to English") {
-        const [german, english] = questions[questionNumber - 1];
+        const [german, english] = questions[index];
         questionText = `What is '${german}' in English?`;
         correctAnswers = english.split(", ").map(answer => answer.trim().toLowerCase());
     } else {
-        const [english, german] = Object.entries(engToGer)[questionNumber - 1];
+        const [english, german] = Object.entries(engToGer)[index];
         questionText = `What is '${english}' in German?`;
         correctAnswers = german.map(g => g.toLowerCase());
     }
 
     document.getElementById('question').innerText = questionText;
-    document.getElementById('answer').value = ""; // Clear previous answer
-    document.getElementById('answer').focus(); // Focus on the input field
-
-    // Store correct answers for comparison in checkAnswer()
+    document.getElementById('answer').value = "";
+    document.getElementById('answer').focus();
     document.getElementById('answer').dataset.correctAnswers = JSON.stringify(correctAnswers);
+    
+    // Update the question number for the next round
+    questionNumber++;
+    updateProgressBar(); // Update progress bar for the new question
 }
+
 
 function updateProgressBar() {
     const progressBar = document.getElementById('progress-bar');
