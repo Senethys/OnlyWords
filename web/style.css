@@ -104,3 +104,44 @@ button:hover {
         padding: 15px;
     }
 }
+
+
+/* Mode selection */
+
+/* Mode Selection Container */
+#mode-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+/* Mode Selection Labels */
+#mode-selection label {
+    margin: 10px;  /* Increased margin for better spacing */
+    cursor: pointer;
+    transition: transform 0.2s ease;  /* Adding a subtle transform effect on hover */
+}
+
+#mode-selection label:hover {
+    transform: scale(1.05);  /* Slightly enlarging labels on hover for interactivity */
+}
+
+/* Start Quiz Button */
+#startQuiz {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 24px;  /* Slightly increased padding for a larger clickable area */
+    font-size: 18px;  /* Increased font size for better readability */
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;  /* Adding transform to the transition */
+    margin-top: 20px;  /* Ensuring there's enough space above the start button */
+}
+
+#startQuiz:hover {
+    background-color: #0056b3;  /* Darkening the button color on hover for feedback */
+    transform: translateY(-2px);  /* Moving the button up slightly on hover for a 'press' effect */
+}

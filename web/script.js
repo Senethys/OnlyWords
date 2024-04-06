@@ -219,105 +219,144 @@ const wordPairs200 = {
     "zwei": "two"
 };
 
+
+let quizMode = 'Both';
 let score = 0;
-let questionNumber = 1;
-let questions = Object.entries(wordPairs200);
-let totalQuestions = questions.length;
-let engToGer = {};
+let questionNumber = 0;
+let totalQuestions;
 let mistakes = 0;
 let usedIndices = new Set();
+let questions = Object.entries(wordPairs200);  // Convert word pairs to an array of questions
+let engToGer = {};  // To store the reverse mapping for English to German mode
 
-
-// Create a reverse mapping for English to German questions
-for (const [ger, eng] of questions) {
-    if (!(eng in engToGer)) {
-        engToGer[eng] = [];
+// Initialize the reverse mapping for English to German
+for (const [german, english] of questions) {
+    const englishWords = english.split(', ').map(word => word.trim().toLowerCase());
+    for (const word of englishWords) {
+        if (!engToGer[word]) engToGer[word] = [];
+        engToGer[word].push(german);
     }
-    engToGer[eng].push(ger);
 }
 
-function initializeQuiz() {
-    document.getElementById('submit').addEventListener('click', checkAndProceed);
-    // Add event listener for 'Enter' key on the answer input field
-    document.getElementById('answer').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            checkAndProceed();
-        }
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('quiz-container').style.display = 'none';
+
+    document.getElementById('startQuiz').addEventListener('click', function() {
+        document.getElementById('mode-selection').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+
+        quizMode = document.querySelector('input[name="quizMode"]:checked').value;
+        totalQuestions = quizMode === 'Both' ? questions.length : Math.floor(questions.length / 2);
+
+        resetQuiz();
+        nextQuestion();
     });
+});
 
-    nextQuestion();
-}
-
-function nextQuestion() {
-    // Since each word pair is used twice (once for each direction), we divide the total by 2
-    if (questionNumber > totalQuestions / 2) {
-        document.getElementById('question').innerText = "Quiz Completed!";
-        document.getElementById('submit').style.display = 'none';
-        return;
-    }
-
-    let index;
-    do {
-        index = Math.floor(Math.random() * (totalQuestions / 2));
-    } while (usedIndices.has(index));
-    usedIndices.add(index); // Mark this index as used
-
-    // Randomly decide the direction for the current question
-    const direction = Math.random() < 0.5 ? "German to English" : "English to German";
-    let questionText;
-    let correctAnswers;
-
-    if (direction === "German to English") {
-        const [german, english] = questions[index];
-        questionText = `What is '${german}' in English?`;
-        correctAnswers = english.split(", ").map(answer => answer.trim().toLowerCase());
-    } else {
-        // Since we are using the same index for English to German, ensure the corresponding English term is found
-        let englishTerm = questions[index][1]; // This gets the English term from the wordPairs
-        // Now find the German terms that correspond to this English term in the engToGer mapping
-        let germanOptions = engToGer[englishTerm];
-        questionText = `What is '${englishTerm}' in German?`;
-        correctAnswers = germanOptions.map(g => g.toLowerCase());
-    }
-
-    document.getElementById('question').innerText = questionText;
-    document.getElementById('answer').value = ""; // Clear previous answer
-    document.getElementById('answer').focus(); // Focus on the input field
-
-    // Store correct answers for comparison in checkAnswer()
-    document.getElementById('answer').dataset.correctAnswers = JSON.stringify(correctAnswers);
-    
-
-    updateProgressBar(); // Update progress bar for the new question
+function resetQuiz() {
+    score = 0;
+    questionNumber = 0;
+    mistakes = 0;
+    usedIndices.clear();
+    document.getElementById('submit').style.display = 'inline';
+    updateProgressBar();  // Initialize the progress bar at the start of the quiz
 }
 
 function updateProgressBar() {
     const progressBar = document.getElementById('progress-bar');
     const progressInfo = document.getElementById('progress-info');
     const progressPercentage = (questionNumber / totalQuestions) * 100;
-
     progressBar.style.width = `${progressPercentage}%`;
-
     progressInfo.innerText = `Question ${questionNumber} of ${totalQuestions} - Mistakes: ${mistakes}`;
 }
 
+function nextQuestion() {
+    if (questionNumber >= totalQuestions) {
+        completeQuiz();
+        return;
+    }
+
+    let index, term, translation, questionText, correctAnswers;
+    do {
+        index = Math.floor(Math.random() * questions.length);
+    } while (usedIndices.has(index));
+    usedIndices.add(index);
+
+    [term, translation] = questions[index];
+    if ((quizMode === 'Both' && Math.random() < 0.5) || quizMode === 'GermanToEnglish') {
+        questionText = `What is '${term}' in English?`;
+        correctAnswers = translation.toLowerCase().split(", ").map(ans => ans.trim());
+    } else {
+        const englishWords = Object.keys(engToGer);
+        const englishWord = englishWords[index % englishWords.length];  // Ensure index is within bounds
+        correctAnswers = engToGer[englishWord];
+        questionText = `What is '${englishWord}' in German?`;
+    }
+
+    updateQuestionUI(questionText, correctAnswers);
+    questionNumber++;
+}
+
+function updateQuestionUI(questionText, correctAnswers) {
+    document.getElementById('question').innerText = questionText;
+    document.getElementById('answer').value = "";
+    document.getElementById('answer').dataset.correctAnswers = JSON.stringify(correctAnswers);
+}
+
 function checkAndProceed() {
+    if (questionNumber > totalQuestions) return;
+
     const userAnswer = document.getElementById('answer').value.trim().toLowerCase();
     const correctAnswers = JSON.parse(document.getElementById('answer').dataset.correctAnswers);
 
-    if (correctAnswers.includes(userAnswer)) {
-        score++;
-        document.getElementById('feedback').innerText = "Correct!";
-    } else {
-        document.getElementById('feedback').innerText = `Incorrect! Correct answers: ${correctAnswers.join(", ")}.`;
-        mistakes++; // Increment the mistake count
-    }
-
-    questionNumber++; // Increment here so that it correctly reflects the next question's number
-    document.getElementById('score').innerText = `Score: ${score}/${questionNumber}`;
-    updateProgressBar(); // Update the progress bar after each question
-    nextQuestion(); // Present the next question
+    const isCorrect = correctAnswers.includes(userAnswer);
+    updateFeedback(isCorrect ? "Correct!" : `Incorrect! Correct answers: ${correctAnswers.join(", ")}.`, isCorrect);
+    
+    nextQuestion();
 }
 
-initializeQuiz();
-updateProgressBar(); // Initialize the progress bar when the quiz starts
+function updateFeedback(feedbackText, isCorrect) {
+    document.getElementById('feedback').innerText = feedbackText;
+    if (isCorrect) {
+        score++;
+    } else {
+        mistakes++;
+    }
+    document.getElementById('score').innerText = `Score: ${score} / ${questionNumber}`;
+    updateProgressBar();
+}
+
+function completeQuiz() {
+    document.getElementById('question').innerText = "Quiz Completed!";
+    document.getElementById('answer').disabled = true; // Disable the answer input
+    document.getElementById('feedback').innerText = `Final Score: ${score} / ${totalQuestions} with ${mistakes} mistakes.`;
+    
+    // Change the "Submit" button to "Start Over"
+    const submitBtn = document.getElementById('submit');
+    submitBtn.innerText = 'Start Over';
+    submitBtn.removeEventListener('click', checkAndProceed); // Remove the checkAndProceed event listener
+    submitBtn.addEventListener('click', startOver); // Add a new event listener for starting over
+}
+
+function startOver() {
+    // Reset the UI to its initial state
+    document.getElementById('quiz-container').style.display = 'none';
+    document.getElementById('mode-selection').style.display = 'block';
+    document.getElementById('submit').innerText = 'Submit';
+    document.getElementById('answer').disabled = false; // Re-enable the answer input
+    
+    // Reset quiz data
+    resetQuiz();
+
+    // Remove the startOver event listener and add back the checkAndProceed listener
+    const submitBtn = document.getElementById('submit');
+    submitBtn.removeEventListener('click', startOver);
+    submitBtn.addEventListener('click', checkAndProceed);
+}
+
+document.getElementById('submit').addEventListener('click', checkAndProceed);
+document.getElementById('answer').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        checkAndProceed();
+    }
+});
