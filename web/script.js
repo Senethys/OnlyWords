@@ -221,16 +221,24 @@ const wordPairs200 = {
 
 let score = 0;
 let questionNumber = 1;
-let questions = Object.entries(wordPairs200).flatMap(([ger, eng]) => [
-    { question: ger, answer: eng, direction: "GE" }, // German to English
-    { question: eng, answer: ger, direction: "EG" }  // English to German
-]);
-let totalQuestions = questions.length; // Now correctly reflecting each pair as two questions
+let questions = Object.entries(wordPairs200);
+let totalQuestions = questions.length;
+let engToGer = {};
 let mistakes = 0;
 let usedIndices = new Set();
 
+
+// Create a reverse mapping for English to German questions
+for (const [ger, eng] of questions) {
+    if (!(eng in engToGer)) {
+        engToGer[eng] = [];
+    }
+    engToGer[eng].push(ger);
+}
+
 function initializeQuiz() {
     document.getElementById('submit').addEventListener('click', checkAndProceed);
+    // Add event listener for 'Enter' key on the answer input field
     document.getElementById('answer').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             checkAndProceed();
@@ -241,7 +249,8 @@ function initializeQuiz() {
 }
 
 function nextQuestion() {
-    if (questionNumber > totalQuestions) {
+    // Since each word pair is used twice (once for each direction), we divide the total by 2
+    if (questionNumber > totalQuestions / 2) {
         document.getElementById('question').innerText = "Quiz Completed!";
         document.getElementById('submit').style.display = 'none';
         return;
@@ -249,27 +258,36 @@ function nextQuestion() {
 
     let index;
     do {
-        index = Math.floor(Math.random() * totalQuestions);
+        index = Math.floor(Math.random() * (totalQuestions / 2));
     } while (usedIndices.has(index));
     usedIndices.add(index); // Mark this index as used
 
-    const questionItem = questions[index];
+    // Randomly decide the direction for the current question
+    const direction = Math.random() < 0.5 ? "German to English" : "English to German";
     let questionText;
     let correctAnswers;
 
-    if (questionItem.direction === "GE") {
-        questionText = `What is '${questionItem.question}' in English?`;
-        correctAnswers = questionItem.answer.split(", ").map(answer => answer.trim().toLowerCase());
-    } else { // "EG"
-        questionText = `What is '${questionItem.question}' in German?`;
-        correctAnswers = [questionItem.answer.toLowerCase()];
+    if (direction === "German to English") {
+        const [german, english] = questions[index];
+        questionText = `What is '${german}' in English?`;
+        correctAnswers = english.split(", ").map(answer => answer.trim().toLowerCase());
+    } else {
+        // Since we are using the same index for English to German, ensure the corresponding English term is found
+        let englishTerm = questions[index][1]; // This gets the English term from the wordPairs
+        // Now find the German terms that correspond to this English term in the engToGer mapping
+        let germanOptions = engToGer[englishTerm];
+        questionText = `What is '${englishTerm}' in German?`;
+        correctAnswers = germanOptions.map(g => g.toLowerCase());
     }
 
     document.getElementById('question').innerText = questionText;
-    document.getElementById('answer').value = "";
-    document.getElementById('answer').focus();
+    document.getElementById('answer').value = ""; // Clear previous answer
+    document.getElementById('answer').focus(); // Focus on the input field
+
+    // Store correct answers for comparison in checkAnswer()
     document.getElementById('answer').dataset.correctAnswers = JSON.stringify(correctAnswers);
     
+
     updateProgressBar(); // Update progress bar for the new question
 }
 
@@ -279,6 +297,7 @@ function updateProgressBar() {
     const progressPercentage = (questionNumber / totalQuestions) * 100;
 
     progressBar.style.width = `${progressPercentage}%`;
+
     progressInfo.innerText = `Question ${questionNumber} of ${totalQuestions} - Mistakes: ${mistakes}`;
 }
 
@@ -294,11 +313,11 @@ function checkAndProceed() {
         mistakes++; // Increment the mistake count
     }
 
-    questionNumber++; // Increment for the next question
-    document.getElementById('score').innerText = `Score: ${score}/${questionNumber - 1}`;
+    questionNumber++; // Increment here so that it correctly reflects the next question's number
+    document.getElementById('score').innerText = `Score: ${score}/${questionNumber}`;
     updateProgressBar(); // Update the progress bar after each question
-    nextQuestion(); // Proceed to the next question
+    nextQuestion(); // Present the next question
 }
 
-initializeQuiz(); // Start the quiz
-updateProgressBar(); // Initialize the progress bart
+initializeQuiz();
+updateProgressBar(); // Initialize the progress bar when the quiz starts
