@@ -221,24 +221,16 @@ const wordPairs200 = {
 
 let score = 0;
 let questionNumber = 1;
-let questions = Object.entries(wordPairs200);
-let totalQuestions = questions.length;
-let engToGer = {};
+let questions = Object.entries(wordPairs200).flatMap(([ger, eng]) => [
+    { question: ger, answer: eng, direction: "GE" }, // German to English
+    { question: eng, answer: ger, direction: "EG" }  // English to German
+]);
+let totalQuestions = questions.length; // Now correctly reflecting each pair as two questions
 let mistakes = 0;
 let usedIndices = new Set();
 
-
-// Create a reverse mapping for English to German questions
-for (const [ger, eng] of questions) {
-    if (!(eng in engToGer)) {
-        engToGer[eng] = [];
-    }
-    engToGer[eng].push(ger);
-}
-
 function initializeQuiz() {
     document.getElementById('submit').addEventListener('click', checkAndProceed);
-    // Add event listener for 'Enter' key on the answer input field
     document.getElementById('answer').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             checkAndProceed();
@@ -261,18 +253,16 @@ function nextQuestion() {
     } while (usedIndices.has(index));
     usedIndices.add(index); // Mark this index as used
 
-    const direction = Math.random() < 0.5 ? "German to English" : "English to German";
+    const questionItem = questions[index];
     let questionText;
     let correctAnswers;
 
-    if (direction === "German to English") {
-        const [german, english] = questions[index];
-        questionText = `What is '${german}' in English?`;
-        correctAnswers = english.split(", ").map(answer => answer.trim().toLowerCase());
-    } else {
-        const [english, german] = Object.entries(engToGer)[index];
-        questionText = `What is '${english}' in German?`;
-        correctAnswers = german.map(g => g.toLowerCase());
+    if (questionItem.direction === "GE") {
+        questionText = `What is '${questionItem.question}' in English?`;
+        correctAnswers = questionItem.answer.split(", ").map(answer => answer.trim().toLowerCase());
+    } else { // "EG"
+        questionText = `What is '${questionItem.question}' in German?`;
+        correctAnswers = [questionItem.answer.toLowerCase()];
     }
 
     document.getElementById('question').innerText = questionText;
@@ -280,11 +270,8 @@ function nextQuestion() {
     document.getElementById('answer').focus();
     document.getElementById('answer').dataset.correctAnswers = JSON.stringify(correctAnswers);
     
-    // Update the question number for the next round
-    questionNumber++;
     updateProgressBar(); // Update progress bar for the new question
 }
-
 
 function updateProgressBar() {
     const progressBar = document.getElementById('progress-bar');
@@ -292,7 +279,6 @@ function updateProgressBar() {
     const progressPercentage = (questionNumber / totalQuestions) * 100;
 
     progressBar.style.width = `${progressPercentage}%`;
-
     progressInfo.innerText = `Question ${questionNumber} of ${totalQuestions} - Mistakes: ${mistakes}`;
 }
 
@@ -306,14 +292,13 @@ function checkAndProceed() {
     } else {
         document.getElementById('feedback').innerText = `Incorrect! Correct answers: ${correctAnswers.join(", ")}.`;
         mistakes++; // Increment the mistake count
-
     }
 
-    questionNumber++;
+    questionNumber++; // Increment for the next question
     document.getElementById('score').innerText = `Score: ${score}/${questionNumber - 1}`;
     updateProgressBar(); // Update the progress bar after each question
-    nextQuestion();
+    nextQuestion(); // Proceed to the next question
 }
 
-initializeQuiz();
-updateProgressBar(); // Initialize the progress bar when the quiz starts
+initializeQuiz(); // Start the quiz
+updateProgressBar(); // Initialize the progress bart
