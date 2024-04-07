@@ -219,6 +219,7 @@ const wordPairs200 = {
     "zwei": "two"
 };
 
+let wrongAnswersIndices = [];
 
 let quizMode = 'Both';
 let score = 0;
@@ -254,10 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function resetQuiz() {
-    score = 0;
-    questionNumber = 0;
-    mistakes = 0;
-    usedIndices.clear();
+    score = 0;  // Reset the score
+    questionNumber = 0;  // Reset the question number
+    mistakes = 0;  // Reset the mistakes count
+    usedIndices.clear();  // Clear the set of used question indices
     document.getElementById('submit').style.display = 'inline';
     updateProgressBar();  // Initialize the progress bar at the start of the quiz
 }
@@ -310,6 +311,10 @@ function checkAndProceed() {
     const correctAnswers = JSON.parse(document.getElementById('answer').dataset.correctAnswers);
 
     const isCorrect = correctAnswers.includes(userAnswer);
+    if (!isCorrect) {
+        // If the answer is incorrect, add the current question index to wrongAnswersIndices
+        wrongAnswersIndices.push([...usedIndices][usedIndices.size - 1]);
+    }
     updateFeedback(isCorrect ? "Correct!" : `Incorrect! Correct answers: ${correctAnswers.join(", ")}.`, isCorrect);
     
     nextQuestion();
@@ -328,31 +333,95 @@ function updateFeedback(feedbackText, isCorrect) {
 
 function completeQuiz() {
     document.getElementById('question').innerText = "Quiz Completed!";
-    document.getElementById('answer').disabled = true; // Disable the answer input
+    document.getElementById('answer').disabled = true;
     document.getElementById('feedback').innerText = `Final Score: ${score} / ${totalQuestions} with ${mistakes} mistakes.`;
-    
-    // Change the "Submit" button to "Start Over"
+
+    // Show the "Retry Wrong Answers" button if there are wrong answers
+    const retryButton = document.getElementById('retryWrong');
+    if (wrongAnswersIndices.length > 0) {
+        retryButton.style.display = 'inline';
+        retryButton.removeEventListener('click', retryWrongAnswers); // Remove previous listener to avoid duplicates
+        retryButton.addEventListener('click', retryWrongAnswers); // Add the event listener for retrying wrong answers
+    } else {
+        retryButton.style.display = 'none';
+    }
+
+    // Setup the "Start Over" button
     const submitBtn = document.getElementById('submit');
     submitBtn.innerText = 'Start Over';
-    submitBtn.removeEventListener('click', checkAndProceed); // Remove the checkAndProceed event listener
-    submitBtn.addEventListener('click', startOver); // Add a new event listener for starting over
+    submitBtn.style.display = 'inline'; // Show the "Start Over" button
+    submitBtn.removeEventListener('click', checkAndProceed); // Remove checkAndProceed listener
+    submitBtn.addEventListener('click', startOver); // Add startOver listener
+}
+
+
+
+function retryWrongAnswers() {
+    // Filter questions to include only those with indices in wrongAnswersIndices
+    questions = questions.filter((_, index) => wrongAnswersIndices.includes(index));
+    totalQuestions = questions.length; // Update totalQuestions based on wrongAnswers
+
+    // Hide the "Retry Wrong Answers" button
+    document.getElementById('retryWrong').style.display = 'none';
+
+    // Clear the wrong answers list to prepare for the new round of retrying
+    wrongAnswersIndices = [];
+
+    // Reset the UI and quiz data for retrying wrong answers
+    resetQuiz();
+
+    // Clear the final score and mistakes display
+    document.getElementById('feedback').innerText = "";
+
+    // Update the score and mistakes display
+    document.getElementById('score').innerText = `Score: 0`;
+    document.getElementById('progress-info').innerText = `Question 0 of ${totalQuestions} - Mistakes: 0`;
+
+    // Change the submit button text to "Submit" and reattach the event listener for submitting answers
+    const submitBtn = document.getElementById('submit');
+    submitBtn.innerText = 'Submit';
+    submitBtn.style.display = 'inline';
+    submitBtn.removeEventListener('click', startOver); // Remove the startOver listener
+    submitBtn.addEventListener('click', checkAndProceed); // Attach the checkAndProceed listener
+
+    // Ensure the input field is re-enabled
+    document.getElementById('answer').disabled = false;
+
+    // Start the first question of the retry quiz
+    nextQuestion();
 }
 
 function startOver() {
-    // Reset the UI to its initial state
+    // Restore the full list of questions
+    questions = Object.entries(wordPairs200);
+    totalQuestions = questions.length;
+
+    // Reset the UI and quiz data
+    resetQuiz();
+
+    // Reset the score and mistakes display
+    document.getElementById('score').innerText = `Score: 0`;
+    document.getElementById('progress-info').innerText = `Question 0 of ${totalQuestions} - Mistakes: 0`;
+
+    // Hide the quiz container and show the mode selection
     document.getElementById('quiz-container').style.display = 'none';
     document.getElementById('mode-selection').style.display = 'block';
     document.getElementById('submit').innerText = 'Submit';
-    document.getElementById('answer').disabled = false; // Re-enable the answer input
-    
-    // Reset quiz data
-    resetQuiz();
+    document.getElementById('submit').style.display = 'inline';
 
-    // Remove the startOver event listener and add back the checkAndProceed listener
+    // Re-enable the input field
+    document.getElementById('answer').disabled = false;
+
+    // Hide the retry button
+    document.getElementById('retryWrong').style.display = 'none';
+
+    // Make sure the submit button is ready to check answers when the quiz restarts
     const submitBtn = document.getElementById('submit');
     submitBtn.removeEventListener('click', startOver);
     submitBtn.addEventListener('click', checkAndProceed);
 }
+
+
 
 document.getElementById('submit').addEventListener('click', checkAndProceed);
 document.getElementById('answer').addEventListener('keypress', function(e) {
